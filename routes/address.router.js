@@ -3,17 +3,25 @@ const router = express.Router();
 
 const Address = require("../models/address.model");
 
-router.get("/", async (req, res) => {    
-  const addresses = await Address.find({uid: req.uid});
-  res.json({
-    success: true,
-    addresses: addresses
-  });
+router.get("/", async (req, res) => {
+  try{
+    const addresses = await Address.find({uid: req.uid});
+    res.json({
+      success: true,
+      addresses: addresses
+    });
+  }catch(e){
+    res.status(500).json({
+      error: {
+        message: "Mongoose error: " + e.message
+      }
+    })
+  }
+  
 });
 
 router.post("/", async (req, res) => {
   try{
-    console.log(req.uid);
     const {address} = req.body;
     const newAddress = await Address.create({ uid: req.uid, ...address });
     res.json({
@@ -61,6 +69,5 @@ router.delete("/:addressId", async (req, res) => {
     })
   } 
 });
-
 
 module.exports = router;

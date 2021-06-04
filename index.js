@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const {corsOptions} = require('./configs.js');
+const {corsOptions} = require('./data/configs.js');
 
 const invalidRouteHandler = require('./middlewares/invalid-route-handler');
 const authCheck = require('./middlewares/auth-check');
@@ -16,7 +16,7 @@ const wishlistRouter = require("./routes/wishlist.router");
 const addressRouter = require("./routes/address.router");
 const orderRouter = require('./routes/order.router');
 
-const db = require("./db")
+const db = require("./utils/db")
 
 const app = express();
 app.use(cors());

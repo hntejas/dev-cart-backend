@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const {generateJWT} = require('../jwt');
+const {generateJWT} = require('../utils/jwt');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const bcryptSalt = bcrypt.genSaltSync(8);
@@ -11,7 +11,7 @@ const Wishlist = require('../models/wishlist.model');
 
 router.post('/signup', async function(req, res) {
   const { email, password, name } = req.body;
-  const existingUser = await checkIfUserExists(email);
+  const existingUser = await User.findOne({ email: email });
   if (!existingUser) {
     const hashedPassword = bcrypt.hashSync(password, bcryptSalt);   
     const user = await User.create({ name: name, email: email, password: hashedPassword });
@@ -35,7 +35,7 @@ router.post('/signup', async function(req, res) {
 
 router.post('/login', async function(req, res){
   const {email, password} = req.body;
-  const existingUser = await checkIfUserExists(email);
+  const existingUser = await User.findOne({ email: email });
   if(existingUser){
     const validPassword = bcrypt.compareSync(password, existingUser.password);
     if(validPassword){
@@ -54,17 +54,12 @@ router.post('/login', async function(req, res){
     }    
   }else{
     res.status(401).json({
-       success: false,
+        success: false,
         error: {
           message: "User not registered"
         }
     })
   }  
-})
-
-async function checkIfUserExists(email) {
-  const user = await User.find({ email: email });
-  return user[0];
-}
+});
 
 module.exports = router;

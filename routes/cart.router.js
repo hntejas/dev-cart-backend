@@ -1,5 +1,5 @@
 const express = require("express");
-const { transformCart } = require('../transformer');
+const { transformCart } = require('../utils/transformer');
 const router = express.Router();
 
 const Cart = require("../models/cart.model");
@@ -42,7 +42,6 @@ router.post("/", async (req, res) => {
 
 router.put("/", async (req, res) => {
   try{
-    console.log("start", Date.now());
     const {itemId, quantity} = req.body;
     const {cart, existingProduct} = await getCartAndProduct(req.uid, itemId);
 
@@ -52,7 +51,6 @@ router.put("/", async (req, res) => {
         success: true,
         cart: transformCart(updatedCart)
       })
-      console.log("end", Date.now());
     }else{
       res.status(404).json({
         error: {
