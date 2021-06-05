@@ -10,27 +10,36 @@ const Cart = require('../models/cart.model');
 const Wishlist = require('../models/wishlist.model');
 
 router.post('/signup', async function(req, res) {
-  const { email, password, name } = req.body;
-  const existingUser = await User.findOne({ email: email });
-  if (!existingUser) {
-    const hashedPassword = bcrypt.hashSync(password, bcryptSalt);   
-    const user = await User.create({ name: name, email: email, password: hashedPassword });
-    const cart = await Cart.create({uid: user._id});
-    const wishlist = await Wishlist.create({uid: user._id});
-    const token = generateJWT(user._id.toString());
+  try{
+    const { email, password, name } = req.body;
+    const existingUser = await User.findOne({ email: email });
+    if (!existingUser) {
+      const hashedPassword = bcrypt.hashSync(password, bcryptSalt);   
+      const user = await User.create({ name: name, email: email, password: hashedPassword });
+      const cart = await Cart.create({uid: user._id});
+      const wishlist = await Wishlist.create({uid: user._id});
+      const token = generateJWT(user._id.toString());
 
-    res.json({
-      success: true,
-      token: token
-    });
-  } else {
-    res.status(409).json({
-      success: false,
-      error: {
-        message: "User Already Exists"
-      }
-    });
-  }
+      res.json({
+        success: true,
+        token: token
+      });
+    } else {
+      res.status(409).json({
+        success: false,
+        error: {
+          message: "User Already Exists"
+        }
+      });
+    }
+  }catch(e){
+      res.status(409).json({
+        success: false,
+        error: {
+          message: e.message
+        }
+      });
+  }  
 });
 
 router.post('/login', async function(req, res){

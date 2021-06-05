@@ -10,7 +10,7 @@ router.get("/", async (req, res) => {
   });
   res.json({
     success: true,
-    cart: transformCart(cart)
+    cart: cart && transformCart(cart)
   });
 });
 
@@ -26,6 +26,7 @@ router.post("/", async (req, res) => {
       })
     }else{
       res.status(409).json({
+        success: false,
         error: {
           message: "Item already in cart"
         }
@@ -33,6 +34,7 @@ router.post("/", async (req, res) => {
     } 
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -53,6 +55,7 @@ router.put("/", async (req, res) => {
       })
     }else{
       res.status(404).json({
+        success: false,
         error: {
           message: "Item not in cart"
         }
@@ -60,6 +63,7 @@ router.put("/", async (req, res) => {
     }
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -80,6 +84,7 @@ router.delete("/:itemId", async (req, res) => {
       })
     }else{
       res.status(404).json({
+        success: false,
         error: {
           message: "Item not in cart"
         }
@@ -87,6 +92,7 @@ router.delete("/:itemId", async (req, res) => {
     }
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }

@@ -15,6 +15,7 @@ router.get("/", async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -35,6 +36,7 @@ router.post("/", async (req, res) => {
       })
     } else {
       res.status(409).json({
+        success: false,
         error: {
           message: "Item already in wishlist"
         }
@@ -42,6 +44,7 @@ router.post("/", async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -62,6 +65,7 @@ router.delete("/:itemId", async (req, res) => {
       })
     } else {
       res.status(404).json({
+        success: false,
         error: {
           message: "Item not in wishlist"
         }
@@ -69,6 +73,7 @@ router.delete("/:itemId", async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }

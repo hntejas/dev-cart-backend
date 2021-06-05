@@ -12,6 +12,7 @@ router.get("/", async (req, res) => {
     });
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -30,6 +31,7 @@ router.post("/", async (req, res) => {
     })
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -47,6 +49,7 @@ router.put("/", async (req, res) => {
     })
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -63,6 +66,7 @@ router.delete("/:addressId", async (req, res) => {
     })
   }catch(e){
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }

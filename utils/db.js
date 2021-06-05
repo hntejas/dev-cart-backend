@@ -4,7 +4,6 @@ mongoose.plugin(require('meanie-mongoose-to-json'));
 
 module.exports.init = async () => {
   try{
-    console.log(mongoURL)
     await mongoose.connect(mongoURL, {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false});
     console.log("db connected")
   }catch(e){

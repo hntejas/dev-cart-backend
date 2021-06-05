@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const {Schema} = mongoose;
 
 const ProductSchema = new Schema({
-  imgUrl: String,
-  title: String,
-  brand: String,
-  category: String,
+  imgUrl: {type:String, required: true},
+  title: {type:String, required: true},
+  brand: {type:String, required: true},
+  category: {type:String, required: true},
   availability: {
-    type: String,
+    type: {type:String, required: true},
     enumValues: ["IN_STOCK","OUT_OF_STOCK"]
   },
   price: { type: Number, min: 1 },

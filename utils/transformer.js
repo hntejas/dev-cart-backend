@@ -6,7 +6,7 @@ const maskIds = (dataObj) => {
 }
 
 const transformCart = (cart) => {
-  const cartObj = cart.toObject();
+  let cartObj = cart.toObject();
 
   cartObj.cartLines = cartObj.cartLines.map(cartLine => ({
     ...cartLine,
@@ -19,7 +19,7 @@ const transformCart = (cart) => {
 }
 
 const transformWishlist = (wishlist) => {
-  const wishlistObj = wishlist.toObject();
+  let wishlistObj = wishlist.toObject();
 
   wishlistObj.products = wishlistObj.products.map(product => ({
     ...product, id: product._id, _id: undefined

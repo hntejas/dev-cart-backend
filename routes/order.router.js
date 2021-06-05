@@ -15,6 +15,7 @@ router.get("/", async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
@@ -29,15 +30,16 @@ router.post("/", async (req, res) => {
       path: 'cartLines.product'
     }).execPopulate();
     const totalPrice = getTotalPrice(populatedCart);
-    const order = await Order.create({ uid: req.uid, products: cart.cartLines, totalPrice: totalPrice });
+    await Order.create({ uid: req.uid, products: cart.cartLines, totalPrice: totalPrice });
     cart.cartLines = [];
-    const updatedCart = await cart.save();
+    await cart.save();
 
     res.json({
       success: true
     });
   } catch (e) {
     res.status(500).json({
+      success: false,
       error: {
         message: "Mongoose error: " + e.message
       }
