@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
+const Razorpay = require("razorpay");
+const { transformCart } = require('../utils/transformer');
+const shortid = require("shortid");
 
 const Order = require("../models/order.model");
-const Cart = require("../models/cart.model");
+const CartItem = require("../models/cart-item.model");
 
 router.get("/", async (req, res) => {
   try {
@@ -23,16 +26,37 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/paymentinit", async (req, res) => {
+  try {
+    const cart = await CartItem.find({ uid: req.uid }).populate('product');    
+    const order = await createRazorpayOrder(cart);
+   
+    res.json({
+      success: true,
+      paymentOrder: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency
+      }
+    });
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({
+      success: false,
+      error: {
+        message: "Mongoose error: " + e.message
+      }
+    })
+  }
+})
+
 router.post("/", async (req, res) => {
   try {
-    const cart = await Cart.findOne({ uid: req.uid });
-    const populatedCart = await cart.populate({
-      path: 'cartLines.product'
-    }).execPopulate();
-    const totalPrice = getTotalPrice(populatedCart);
-    await Order.create({ uid: req.uid, products: cart.cartLines, totalPrice: totalPrice });
-    cart.cartLines = [];
-    await cart.save();
+    const cart = await CartItem.find({ uid: req.uid }).populate('product');
+    const cartArray = transformCart(cart);
+    const totalPrice = getTotalPrice(cartArray);
+    await Order.create({uid: req.uid, products: cartArray, totalPrice});
+    await CartItem.deleteMany({uid: req.uid});
 
     res.json({
       success: true
@@ -47,12 +71,32 @@ router.post("/", async (req, res) => {
   }
 });
 
-function getTotalPrice(populatedCart) {
+function getTotalPrice(cartLines) {
   let totalPrice = 0;
-  populatedCart.cartLines.forEach(cartLine => {
+  cartLines.forEach(cartLine => {
     totalPrice += cartLine.product.price;
-  })
+  });
   return totalPrice;
+}
+
+async function createRazorpayOrder(cart){
+  const cartArray = transformCart(cart);
+  const totalPrice = getTotalPrice(cartArray);
+
+  const instance = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_SECRET,
+  });
+
+  const options = {
+      amount: totalPrice * 100,
+      currency: "INR",
+      receipt: shortid.generate(),
+      payment_capture: 1,
+  };
+
+  const order = await instance.orders.create(options);
+  return order;
 }
 
 module.exports = router;

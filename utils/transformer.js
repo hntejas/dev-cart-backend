@@ -5,17 +5,19 @@ const maskIds = (dataObj) => {
   return dataObj
 }
 
-const transformCart = (cart) => {
-  let cartObj = cart.toObject();
+const transformCart = (cartArr) => {
+  cartArr = cartArr.map(cartLine => {
+    const line = cartLine.toObject();
+    return {
+      ...line,
+      id: line._id,
+      _id: undefined,
+      uid: undefined,
+      product: { ...line.product, id: line.product._id, _id: undefined }
+    }
+  });
 
-  cartObj.cartLines = cartObj.cartLines.map(cartLine => ({
-    ...cartLine,
-    _id: undefined,
-    product: { ...cartLine.product, id: cartLine.product._id, _id: undefined }
-  }));
-  cartObj = maskIds(cartObj);
-
-  return cartObj
+  return cartArr;
 }
 
 const transformWishlist = (wishlist) => {

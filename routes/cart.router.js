@@ -3,26 +3,27 @@ const { transformCart } = require('../utils/transformer');
 const router = express.Router();
 
 const Cart = require("../models/cart.model");
+const CartItem = require("../models/cart-item.model")
 
 router.get("/", async (req, res) => {    
-  const cart = await Cart.findOne({uid: req.uid}).populate({
-    path: 'cartLines.product'
-  });
+  const cart = await CartItem.find({uid: req.uid}).populate('product');
+
   res.json({
     success: true,
-    cart: cart && transformCart(cart)
+    cartLines: transformCart(cart)
   });
 });
 
 router.post("/", async (req, res) => {
   try{
     const {itemId} = req.body;
-    const {cart, existingProduct} = await getCartAndProduct(req.uid, itemId);
-    if(!existingProduct){
-      const updatedCart = await addItem(cart, itemId);
+    const existingCartItem = await getCartAndProduct(req.uid, itemId);
+    
+    if(!existingCartItem){
+      const cartItem = await addItem(req.uid, itemId);
       res.json({
         success: true,
-        cart: transformCart(updatedCart)
+        cartId: cartItem._id
       })
     }else{
       res.status(409).json({
@@ -44,23 +45,17 @@ router.post("/", async (req, res) => {
 
 router.put("/", async (req, res) => {
   try{
-    const {itemId, quantity} = req.body;
-    const {cart, existingProduct} = await getCartAndProduct(req.uid, itemId);
+    const {cartId, quantity} = req.body;
 
-    if(existingProduct){
-      const updatedCart = await updateItemQuantity(cart, itemId, quantity);
-      res.json({
-        success: true,
-        cart: transformCart(updatedCart)
-      })
-    }else{
-      res.status(404).json({
-        success: false,
-        error: {
-          message: "Item not in cart"
-        }
-      })
+    if(!cartId || !quantity || quantity < 1){
+      throw "Cart ID not found"
     }
+    
+    const updatedCart = await updateItemQuantity(cartId, quantity);
+    res.json({
+      success: true
+    });
+   
   }catch(e){
     res.status(500).json({
       success: false,
@@ -71,25 +66,23 @@ router.put("/", async (req, res) => {
   } 
 });
 
-router.delete("/:itemId", async (req, res) => {
+router.delete("/:cartId", async (req, res) => {
   try{
-    const {itemId} = req.params;
-    const {cart, existingProduct} = await getCartAndProduct(req.uid, itemId);
+    const {cartId} = req.params;
     
-    if(existingProduct){
-      const updatedCart = await removeItem(cart, itemId);
+    const success = await removeItem(cartId);
+    if(success){
       res.json({
-        success: true,
-        cart: transformCart(updatedCart)
+        success: true
       })
     }else{
-      res.status(404).json({
+      res.status(500).json({
         success: false,
         error: {
-          message: "Item not in cart"
+          message: e.message
         }
       })
-    }
+    }   
   }catch(e){
     res.status(500).json({
       success: false,
@@ -101,53 +94,23 @@ router.delete("/:itemId", async (req, res) => {
 });
 
 async function getCartAndProduct(uid, itemId){
-  const cart = await Cart.findOne({uid: uid});
-  const existingProduct = cart.cartLines.find(cartline => {
-    return cartline.product.toString() === itemId
-  });
-  return {cart, existingProduct}
+  const cartItem = await CartItem.findOne({uid: uid, product: itemId});
+  return cartItem;
 }
 
-async function addItem(cart, itemId){
-  cart.cartLines.push({
-    product: itemId,
-    quantity: 1
-  })
-
-  const savedCart = await cart.save();
-  
-  const populatedCart = await savedCart.populate({
-    path: 'cartLines.product'
-  }).execPopulate();
-
-  return populatedCart;
+async function addItem(uid, itemId){
+  const cartItem = await CartItem.create({uid: uid, product: itemId, quantity: 1});
+  return cartItem;
 }
 
-async function updateItemQuantity(cart, itemId, quantity){
-  cart.cartLines = cart.cartLines.map(cartLine => {
-    if(cartLine.product._id.toString() === itemId){
-      cartLine.quantity = quantity
-    }
-    return cartLine;
-  });
-  const savedCart = await cart.save();
-  const populatedCart = await savedCart.populate({
-    path: 'cartLines.product'
-  }).execPopulate();
-
-  return populatedCart;
+async function updateItemQuantity(cartId, quantity){
+  const cart = await CartItem.findByIdAndUpdate(cartId, {quantity})
+  return cart;
 }
 
-async function removeItem(cart, itemId){
-  cart.cartLines = cart.cartLines.filter(cartLine => {
-    return cartLine.product.toString() !== itemId;
-  });
-  const savedCart = await cart.save();
-  const populatedCart = await savedCart.populate({
-    path: 'cartLines.product'
-  }).execPopulate();
-
-  return populatedCart;
+async function removeItem(cartId){
+  await CartItem.deleteOne({ _id: cartId });
+  return true;
 }
 
 module.exports = router;
