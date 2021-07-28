@@ -51,7 +51,8 @@ router.post('/login', async function(req, res){
       const token = generateJWT(existingUser._id.toString());
       res.json({
         success: true,
-        token: token
+        token: token,
+        name: existingUser.name
       })
     }else{
       res.status(401).json({
